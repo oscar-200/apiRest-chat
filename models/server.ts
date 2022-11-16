@@ -4,6 +4,7 @@ import  express, {Application} from "express";
 import cors from "cors";
 
 import userRoutes from "../routes/users.router";
+import sequelize from "../db/connection";
 
 
 class Server{
@@ -22,6 +23,18 @@ class Server{
 
         this.middlewares();
         this.routes();
+        this.dataBase();
+    }
+
+    dataBase(){
+
+        try {
+            sequelize.authenticate();
+            console.log('DB online'.green);
+            
+        } catch (error) {
+            throw new Error("Error: " + error);
+        }
     }
 
     middlewares(){
