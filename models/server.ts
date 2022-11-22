@@ -4,23 +4,30 @@ import  express, {Application} from "express";
 import cors from "cors";
 
 import userRoutes from "../routes/users.router";
+import messageRouter from '../routes/messages.router'
 import sequelize from "../db/connection";
+import authRouter from '../routes/auth.router'
+
+interface PathRoutes {
+    users: string,
+    messages: string,
+    auth: string
+}
 
 
 class Server{
 
     private app: Application;
-    private path: string;
+    private pathRoutes: PathRoutes;
     private port: string;
     private publicPath: string;
 
 
     constructor(){
         this.app = express();
-        this.path = '/api/users';
         this.port = process.env.PORT || "8080";
         this.publicPath = path.resolve(__dirname, '../../public');
-
+        this.pathRoutes = {users: '/api/users', messages: '/api/messages', auth: '/api/auth'}
         this.middlewares();
         this.routes();
         this.dataBase();
@@ -44,7 +51,9 @@ class Server{
     }
 
     routes(){
-        this.app.use(this.path, userRoutes);
+        this.app.use(this.pathRoutes.users, userRoutes);
+        this.app.use(this.pathRoutes.messages, messageRouter);
+        this.app.use(this.pathRoutes.auth, authRouter);
     }
 
     listen(){
