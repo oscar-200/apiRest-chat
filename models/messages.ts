@@ -2,32 +2,29 @@ import db from "./../db/connection";
 import { DataTypes } from "sequelize";
 
 const Message = db.define('Message',{
-    receiver: {
-        type: DataTypes.STRING,
-        references: 'User',
-        allowNull: false
+    id: {
+        type: DataTypes.NUMBER,
+        primaryKey: true,
+        autoIncrement: true
     },
-    mailer: {
-        type: DataTypes.STRING,
-        references: 'User',
-        allowNull: false
-    },
-    hour: {
-        type: DataTypes.TIME,
-        allowNull: false
-    },
-    date: {
-        type: DataTypes.DATE,
-        allowNull: false
-    },
-    message: {
+    content: {
         type: DataTypes.STRING,
         allowNull: false
     },
-    room: {
+    user_id: {
         type: DataTypes.STRING,
-        defaultValue: "0"
+        allowNull: false,
+        references: 'User'
     },
+    conversation_id: {
+        type: DataTypes.NUMBER,
+        allowNull: false,
+        references: 'Conversation'
+    },
+    is_readed: {
+        type: DataTypes.NUMBER,
+        defaultValue: 0
+    }
 });
 
 

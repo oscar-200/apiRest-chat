@@ -3,6 +3,11 @@ import db from "./../db/connection"
 
 
 const Conversation = db.define('Conversation', {
+    id: {
+        type: DataTypes.NUMBER,
+        autoIncrement: true,
+        primaryKey: true
+    },
     sender_id: {
         type: DataTypes.STRING,
         allowNull: false,

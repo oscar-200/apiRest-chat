@@ -7,11 +7,13 @@ import userRoutes from "../routes/users.router";
 import messageRouter from '../routes/messages.router'
 import sequelize from "../db/connection";
 import authRouter from '../routes/auth.router'
+import conversationRouter from '../routes/conversations.router'
 
 interface PathRoutes {
     users: string,
     messages: string,
-    auth: string
+    auth: string,
+    conversations: string
 }
 
 
@@ -26,8 +28,13 @@ class Server{
     constructor(){
         this.app = express();
         this.port = process.env.PORT || "8080";
-        this.publicPath = path.resolve(__dirname, '../../public');
-        this.pathRoutes = {users: '/api/users', messages: '/api/messages', auth: '/api/auth'}
+        this.publicPath = path.resolve(__dirname, '../public');
+        this.pathRoutes = {
+            users: '/api/users', 
+            messages: '/api/messages', 
+            auth: '/api/auth',
+            conversations: '/api/conversations'
+        }
         this.middlewares();
         this.routes();
         this.dataBase();
@@ -54,12 +61,13 @@ class Server{
         this.app.use(this.pathRoutes.users, userRoutes);
         this.app.use(this.pathRoutes.messages, messageRouter);
         this.app.use(this.pathRoutes.auth, authRouter);
+        this.app.use(this.pathRoutes.conversations, conversationRouter);
     }
 
     listen(){
         this.app.listen(this.port, ()=>{
-            console.log(`Server on port: ${this.port}`.blue)
-        })
+            console.log(`Server on port: ${this.port}`.blue);
+        });
     }
 }
 

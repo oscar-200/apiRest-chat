@@ -12,33 +12,18 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.createMessage = exports.getMessages = void 0;
+exports.getMessages = exports.createMessage = void 0;
+const conversations_1 = __importDefault(require("../models/conversations"));
 const messages_1 = __importDefault(require("../models/messages"));
-const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { id_receiver, id_mailer } = req.params;
-    const messages = yield messages_1.default.findAll({
-        where: {
-            receiver: id_receiver,
-            mailer: id_mailer
-        }
-    });
-    res.json({
-        messages
-    });
-});
-exports.getMessages = getMessages;
 const createMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { receiver, mailer, hour, date, message, room } = req.body;
+    const { content, user_id, conversation_id, is_readed } = req.body;
     const data = {
-        id: "1",
-        receiver,
-        mailer,
-        hour,
-        date,
-        message,
-        room
+        content,
+        user_id,
+        conversation_id,
+        is_readed,
+        createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
     };
-    console.log(data);
     const newMessage = yield messages_1.default.create(data);
     yield newMessage.save();
     res.json({
@@ -46,4 +31,22 @@ const createMessage = (req, res) => __awaiter(void 0, void 0, void 0, function* 
     });
 });
 exports.createMessage = createMessage;
-//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWVzc2FnZXMuY29udHJvbGxlci5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL2NvbnRyb2xsZXJzL21lc3NhZ2VzLmNvbnRyb2xsZXIudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7O0FBQ0Esa0VBQXlDO0FBR2xDLE1BQU0sV0FBVyxHQUFHLENBQU8sR0FBWSxFQUFFLEdBQWEsRUFBRSxFQUFFO0lBQzdELE1BQU8sRUFBQyxXQUFXLEVBQUUsU0FBUyxFQUFDLEdBQUcsR0FBRyxDQUFDLE1BQU0sQ0FBQztJQUU3QyxNQUFNLFFBQVEsR0FBRyxNQUFNLGtCQUFPLENBQUMsT0FBTyxDQUFDO1FBQ25DLEtBQUssRUFBRTtZQUNILFFBQVEsRUFBRSxXQUFXO1lBQ3JCLE1BQU0sRUFBRSxTQUFTO1NBQ3BCO0tBQUMsQ0FBQyxDQUFDO0lBRVIsR0FBRyxDQUFDLElBQUksQ0FBQztRQUNMLFFBQVE7S0FDWCxDQUFDLENBQUM7QUFDUCxDQUFDLENBQUEsQ0FBQTtBQVpZLFFBQUEsV0FBVyxlQVl2QjtBQUVNLE1BQU0sYUFBYSxHQUFFLENBQU8sR0FBWSxFQUFFLEdBQWEsRUFBRSxFQUFFO0lBQzlELE1BQU0sRUFBQyxRQUFRLEVBQUUsTUFBTSxFQUFFLElBQUksRUFBRSxJQUFJLEVBQUUsT0FBTyxFQUFFLElBQUksRUFBQyxHQUFHLEdBQUcsQ0FBQyxJQUFJLENBQUM7SUFFL0QsTUFBTSxJQUFJLEdBQUc7UUFDVCxFQUFFLEVBQUUsR0FBRztRQUNQLFFBQVE7UUFDUixNQUFNO1FBQ04sSUFBSTtRQUNKLElBQUk7UUFDSixPQUFPO1FBQ1AsSUFBSTtLQUNQLENBQUE7SUFFRCxPQUFPLENBQUMsR0FBRyxDQUFDLElBQUksQ0FBQyxDQUFDO0lBSWxCLE1BQU0sVUFBVSxHQUFHLE1BQU0sa0JBQU8sQ0FBQyxNQUFNLENBQUMsSUFBSSxDQUFDLENBQUM7SUFDOUMsTUFBTSxVQUFVLENBQUMsSUFBSSxFQUFFLENBQUM7SUFFeEIsR0FBRyxDQUFDLElBQUksQ0FBQztRQUNMLFVBQVU7S0FDYixDQUFDLENBQUM7QUFFUCxDQUFDLENBQUEsQ0FBQTtBQXhCWSxRQUFBLGFBQWEsaUJBd0J6QiJ9
+const getMessages = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { sender_id, receptor_id } = req.params;
+    const { page } = req.body;
+    const conversation = JSON.stringify(yield conversations_1.default.findOne({ where: { sender_id, receptor_id } }));
+    if (!conversation) {
+        return res.status(400).json({ msg: "No existe conversacion entre estos usuarios" });
+    }
+    const conversationJson = JSON.parse(conversation);
+    const [messages, total] = yield Promise.all([
+        messages_1.default.findAll({ where: { conversation_id: conversationJson.id }, offset: ((page - 1) * 10), limit: 10 }),
+        messages_1.default.count({ where: { conversation_id: conversationJson.id } })
+    ]);
+    res.json({
+        total,
+        messages
+    });
+});
+exports.getMessages = getMessages;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoibWVzc2FnZXMuY29udHJvbGxlci5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbIi4uLy4uL2NvbnRyb2xsZXJzL21lc3NhZ2VzLmNvbnRyb2xsZXIudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7Ozs7Ozs7Ozs7Ozs7O0FBQ0EsNEVBQW1EO0FBQ25ELGtFQUF5QztBQUdsQyxNQUFNLGFBQWEsR0FBRyxDQUFPLEdBQVksRUFBRSxHQUFhLEVBQUUsRUFBRTtJQUMvRCxNQUFNLEVBQUUsT0FBTyxFQUFFLE9BQU8sRUFBRSxlQUFlLEVBQUUsU0FBUyxFQUFFLEdBQUcsR0FBRyxDQUFDLElBQUksQ0FBQztJQUVsRSxNQUFNLElBQUksR0FBRztRQUNULE9BQU87UUFDUCxPQUFPO1FBQ1AsZUFBZTtRQUNmLFNBQVM7UUFDVCxTQUFTLEVBQUUsSUFBSSxJQUFJLEVBQUUsQ0FBQyxXQUFXLEVBQUUsQ0FBQyxLQUFLLENBQUMsQ0FBQyxFQUFFLEVBQUUsQ0FBQyxDQUFDLE9BQU8sQ0FBQyxHQUFHLEVBQUUsR0FBRyxDQUFDO0tBQ3JFLENBQUE7SUFFRCxNQUFNLFVBQVUsR0FBRyxNQUFNLGtCQUFPLENBQUMsTUFBTSxDQUFDLElBQUksQ0FBQyxDQUFDO0lBQzlDLE1BQU0sVUFBVSxDQUFDLElBQUksRUFBRSxDQUFDO0lBRXhCLEdBQUcsQ0FBQyxJQUFJLENBQUM7UUFDTCxVQUFVO0tBQ2IsQ0FBQyxDQUFDO0FBQ1AsQ0FBQyxDQUFBLENBQUE7QUFqQlksUUFBQSxhQUFhLGlCQWlCekI7QUFFTSxNQUFNLFdBQVcsR0FBRyxDQUFPLEdBQVksRUFBRSxHQUFhLEVBQUUsRUFBRTtJQUU3RCxNQUFNLEVBQUMsU0FBUyxFQUFFLFdBQVcsRUFBQyxHQUFHLEdBQUcsQ0FBQyxNQUFNLENBQUM7SUFDNUMsTUFBTSxFQUFDLElBQUksRUFBQyxHQUFHLEdBQUcsQ0FBQyxJQUFJLENBQUM7SUFFeEIsTUFBTSxZQUFZLEdBQUcsSUFBSSxDQUFDLFNBQVMsQ0FBRSxNQUFNLHVCQUFZLENBQUMsT0FBTyxDQUFDLEVBQUUsS0FBSyxFQUFFLEVBQUUsU0FBUyxFQUFFLFdBQVcsRUFBRSxFQUFFLENBQUMsQ0FBQyxDQUFDO0lBRXhHLElBQUcsQ0FBQyxZQUFZLEVBQUM7UUFDYixPQUFPLEdBQUcsQ0FBQyxNQUFNLENBQUMsR0FBRyxDQUFDLENBQUMsSUFBSSxDQUFDLEVBQUMsR0FBRyxFQUFFLDZDQUE2QyxFQUFDLENBQUMsQ0FBQztLQUNyRjtJQUVELE1BQU0sZ0JBQWdCLEdBQUcsSUFBSSxDQUFDLEtBQUssQ0FBQyxZQUFZLENBQUMsQ0FBQztJQUVsRCxNQUFNLENBQUMsUUFBUSxFQUFFLEtBQUssQ0FBQyxHQUFHLE1BQU0sT0FBTyxDQUFDLEdBQUcsQ0FBQztRQUN4QyxrQkFBTyxDQUFDLE9BQU8sQ0FBQyxFQUFDLEtBQUssRUFBRSxFQUFDLGVBQWUsRUFBRSxnQkFBZ0IsQ0FBQyxFQUFFLEVBQUMsRUFBRSxNQUFNLEVBQUUsQ0FBQyxDQUFDLElBQUksR0FBQyxDQUFDLENBQUMsR0FBQyxFQUFFLENBQUMsRUFBRSxLQUFLLEVBQUUsRUFBRSxFQUFDLENBQUM7UUFDbEcsa0JBQU8sQ0FBQyxLQUFLLENBQUMsRUFBQyxLQUFLLEVBQUUsRUFBQyxlQUFlLEVBQUUsZ0JBQWdCLENBQUMsRUFBRSxFQUFDLEVBQUMsQ0FBQztLQUNqRSxDQUFDLENBQUM7SUFFSCxHQUFHLENBQUMsSUFBSSxDQUFDO1FBQ0wsS0FBSztRQUNMLFFBQVE7S0FDWCxDQUFDLENBQUM7QUFDUCxDQUFDLENBQUEsQ0FBQTtBQXRCWSxRQUFBLFdBQVcsZUFzQnZCIn0=

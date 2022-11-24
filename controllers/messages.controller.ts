@@ -1,37 +1,18 @@
 import { Request, Response } from "express";
+import Conversation from "../models/conversations";
 import Message from "../models/messages";
 
 
-export const getMessages = async (req: Request, res: Response) => {
-    const  {id_receiver, id_mailer} = req.params;
+export const createMessage = async (req: Request, res: Response) => {
+    const { content, user_id, conversation_id, is_readed } = req.body;
 
-    const messages = await Message.findAll({
-        where: {
-            receiver: id_receiver,
-            mailer: id_mailer
-        }});
-    
-    res.json({
-        messages
-    });
-}
-
-export const createMessage =async (req: Request, res: Response) => {
-    const {receiver, mailer, hour, date, message, room} = req.body;
-    
     const data = {
-        id: "1",
-        receiver,
-        mailer,
-        hour,
-        date,
-        message,
-        room
+        content,
+        user_id,
+        conversation_id,
+        is_readed,
+        createdAt: new Date().toISOString().slice(0, 19).replace('T', ' ')
     }
-
-    console.log(data);
-
-    
 
     const newMessage = await Message.create(data);
     await newMessage.save();
@@ -39,5 +20,28 @@ export const createMessage =async (req: Request, res: Response) => {
     res.json({
         newMessage
     });
+}
 
+export const getMessages = async (req: Request, res: Response) => {
+    
+    const {sender_id, receptor_id} = req.params;
+    const {page} = req.body;
+
+    const conversation = JSON.stringify( await Conversation.findOne({ where: { sender_id, receptor_id } }));
+
+    if(!conversation){
+        return res.status(400).json({msg: "No existe conversacion entre estos usuarios"});
+    }
+
+    const conversationJson = JSON.parse(conversation);
+
+    const [messages, total] = await Promise.all([
+        Message.findAll({where: {conversation_id: conversationJson.id}, offset: ((page-1)*10), limit: 10}),
+        Message.count({where: {conversation_id: conversationJson.id}})
+    ]);
+
+    res.json({
+        total,
+        messages
+    });
 }
