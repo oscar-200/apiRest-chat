@@ -36,7 +36,7 @@ export const getMessages = async (req: Request, res: Response) => {
     const conversationJson = JSON.parse(conversation);
 
     const [messages, total] = await Promise.all([
-        Message.findAll({where: {conversation_id: conversationJson.id}, offset: ((page-1)*10), limit: 10}),
+        Message.findAll({where: {conversation_id: conversationJson.id}, order: [['id', 'ASC']], offset: ((page-1)*10), limit: 10}),
         Message.count({where: {conversation_id: conversationJson.id}})
     ]);
 
