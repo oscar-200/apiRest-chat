@@ -36,12 +36,15 @@ export const getMessages = async (req: Request, res: Response) => {
     const conversationJson = JSON.parse(conversation);
 
     const [messages, total] = await Promise.all([
-        Message.findAll({where: {conversation_id: conversationJson.id}, order: [['id', 'ASC']], offset: ((page-1)*10), limit: 10}),
+        Message.findAll({where: {conversation_id: conversationJson.id}, order: [['id', 'DESC']], offset: ((page-1)*10), limit: 10}),
         Message.count({where: {conversation_id: conversationJson.id}})
     ]);
 
+    const messagesJson = JSON.parse(JSON.stringify(messages)).sort((a: any,b: any)=>a.id-b.id);
+    
+
     res.json({
         total,
-        messages
+        messagesJson
     });
 }
