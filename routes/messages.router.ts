@@ -11,9 +11,9 @@ router.post('/',[
     check('conversation_id', 'conversation_id obligatorio').notEmpty()
 ],createMessage);
 
-router.get('/:sender_id/:receptor_id', [
-    check('sender_id', 'sender_id es obligatorio').notEmpty(),
-    check('receptor_id', 'receptor_id es obligatorio').notEmpty(),
+router.get('/:id_userOne/:id_userTwo', [
+    check('id_userOne', 'id_userOne es obligatorio').notEmpty(),
+    check('id_userTwo', 'id_userTwo es obligatorio').notEmpty(),
     check('page', 'page es obligatorio').notEmpty(),
     validarCampos
 ],getMessages)
